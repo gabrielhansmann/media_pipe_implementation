@@ -2,3 +2,5 @@
 *.json
 .venv/
 output_videos/
+input_videos/*
+!input_videos/README.md
