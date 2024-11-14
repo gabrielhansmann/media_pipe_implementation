@@ -1,6 +1,12 @@
 # media_pipe_implementation
 Using google media pipe for pose, face and hand tracking
 
+## Download GitHub repository
+Use the following command to download this repository
+```bash
+git clone git@github.com:gabrielhansmann/media_pipe_implementation.git
+```
+
 ## System Dependencies
 Run the following commands to install system dependencies:
 ```bash
