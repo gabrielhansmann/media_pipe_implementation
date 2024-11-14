@@ -1,9 +1,9 @@
 import os
-from datetime import datetime
 import cv2
 import mediapipe as mp
 import json
 import time
+import numpy as np
 
 # Initialize Mediapipe solutions
 mp_pose = mp.solutions.pose
@@ -23,6 +23,7 @@ for video_file in os.listdir(input_folder):
     input_video_path = os.path.join(input_folder, video_file)
     base_filename = os.path.splitext(video_file)[0]
     output_video_filename = os.path.join(output_folder, f"annotated_{base_filename}.avi")
+    output_video_skeleton_filename = os.path.join(output_folder, f"annotated_skeleton_{base_filename}.avi")
     output_json_filename = os.path.join(output_folder, f"landmarks_{base_filename}.json")
 
     # Open the input video
@@ -34,6 +35,9 @@ for video_file in os.listdir(input_folder):
     # Set up video writer for annotated video
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out_video = cv2.VideoWriter(output_video_filename, fourcc, frame_rate, (capture_width, capture_height))
+
+    # Set up video writer for skeleton-only video
+    out_video_skeleton = cv2.VideoWriter(output_video_skeleton_filename, fourcc, frame_rate, (capture_width, capture_height))
 
     # More complex model settings
     pose = mp_pose.Pose(static_image_mode=True, model_complexity=2, enable_segmentation=True)
@@ -58,6 +62,9 @@ for video_file in os.listdir(input_folder):
         # Convert frame to RGB
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        # Create a black background frame for the skeleton
+        skeleton_frame = np.zeros_like(frame)
+
         # Initialize dictionary to store landmarks for this frame
         frame_landmarks = {'pose': [], 'hands': [], 'face': []}
 
@@ -65,6 +72,7 @@ for video_file in os.listdir(input_folder):
         pose_results = pose.process(rgb_frame)
         if pose_results.pose_landmarks:
             mp.solutions.drawing_utils.draw_landmarks(frame, pose_results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            mp.solutions.drawing_utils.draw_landmarks(skeleton_frame, pose_results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
             frame_landmarks['pose'] = [{'x': lm.x, 'y': lm.y, 'z': lm.z} for lm in pose_results.pose_landmarks.landmark]
 
         # Hand detection
@@ -72,6 +80,7 @@ for video_file in os.listdir(input_folder):
         if hands_results.multi_hand_landmarks:
             for hand_landmarks in hands_results.multi_hand_landmarks:
                 mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                mp.solutions.drawing_utils.draw_landmarks(skeleton_frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 frame_landmarks['hands'].append([{'x': lm.x, 'y': lm.y, 'z': lm.z} for lm in hand_landmarks.landmark])
 
         # Face mesh detection
@@ -79,6 +88,7 @@ for video_file in os.listdir(input_folder):
         if face_results.multi_face_landmarks:
             for face_landmarks in face_results.multi_face_landmarks:
                 mp.solutions.drawing_utils.draw_landmarks(frame, face_landmarks, mp_face_mesh.FACEMESH_CONTOURS)
+                mp.solutions.drawing_utils.draw_landmarks(skeleton_frame, face_landmarks, mp_face_mesh.FACEMESH_CONTOURS)
                 frame_landmarks['face'] = [{'x': lm.x, 'y': lm.y, 'z': lm.z} for lm in face_landmarks.landmark]
 
         # Append frame landmarks to the main data list
@@ -86,11 +96,12 @@ for video_file in os.listdir(input_folder):
 
         # Save frame with overlay to video
         out_video.write(frame)
+        out_video_skeleton.write(skeleton_frame)
 
         # Show elapsed time every second
         elapsed_time = time.time() - start_time
         if int(elapsed_time) % 1 == 0:
-            print(f"\rGenerating.... Elapsed time: {int(elapsed_time)} seconds", end='')
+            print(f"\rGenerating... Elapsed time: {int(elapsed_time)} seconds", end='')
 
     # Calculate total elapsed time
     total_elapsed_time = time.time() - start_time
@@ -98,11 +109,13 @@ for video_file in os.listdir(input_folder):
     # Release resources
     post_cap.release()
     out_video.release()
+    out_video_skeleton.release()
 
     # Save landmark data to JSON
     with open(output_json_filename, 'w') as f:
         json.dump(landmark_data, f)
 
     print(f"\nAnnotated video saved as {output_video_filename}")
+    print(f"Annotated skeleton-only video saved as {output_video_skeleton_filename}")
     print(f"Landmark data saved as {output_json_filename}")
     print(f"Time taken for processing {video_file}: {total_elapsed_time:.2f} seconds")
