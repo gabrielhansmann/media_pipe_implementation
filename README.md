@@ -18,3 +18,8 @@ sudo apt install -y libgtk2.0-dev libgtk-3-dev cmake protobuf-compiler python3-p
 ```bash
 pip3 install -r requirements.txt
 ```
+
+## models
+We have two different implementations. 
+- `realtime_tracking.py` is live tracking but not as precise
+- `precise_tracking.py` is not live but as precise as possible.
