@@ -9,8 +9,16 @@ mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 mp_face_mesh = mp.solutions.face_mesh
 
-# Set up recording
+# Set capture resolution and frame rate
+capture_width, capture_height = 1920, 1080  # Set to full HD
+frame_rate = 30  # Increase frame rate for smoother output
+
 cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, capture_width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, capture_height)
+cap.set(cv2.CAP_PROP_FPS, frame_rate)
+
+# Define output folder
 output_folder = "output_videos"
 os.makedirs(output_folder, exist_ok=True)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -18,7 +26,7 @@ raw_video_filename = os.path.join(output_folder, f"raw_capture_{timestamp}.avi")
 
 # Save captured video for post-processing
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-raw_video = cv2.VideoWriter(raw_video_filename, fourcc, 20.0, (640, 480))
+raw_video = cv2.VideoWriter(raw_video_filename, fourcc, frame_rate, (capture_width, capture_height))
 
 # Capture video first
 while cap.isOpened():
@@ -44,7 +52,7 @@ output_json_filename = os.path.join(output_folder, f"landmarks_{timestamp}.json"
 post_cap = cv2.VideoCapture(raw_video_filename)
 
 # Set up video writer for annotated video
-out_video = cv2.VideoWriter(output_video_filename, fourcc, 20.0, (640, 480))
+out_video = cv2.VideoWriter(output_video_filename, fourcc, frame_rate, (capture_width, capture_height))
 
 # More complex model settings
 pose = mp_pose.Pose(static_image_mode=True, model_complexity=2, enable_segmentation=True)
