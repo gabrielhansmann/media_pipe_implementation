@@ -1,2 +1,2 @@
-mediapipe==0.10.0
+mediapipe==0.10.18
 opencv-python==4.10.0  # Or opencv-python-headless if no GUI is required
