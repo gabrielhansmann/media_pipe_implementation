@@ -40,9 +40,9 @@ for video_file in os.listdir(input_folder):
     out_video_skeleton = cv2.VideoWriter(output_video_skeleton_filename, fourcc, frame_rate, (capture_width, capture_height))
 
     # More complex model settings
-    pose = mp_pose.Pose(static_image_mode=True, model_complexity=2, enable_segmentation=True)
-    hands = mp_hands.Hands(static_image_mode=True, max_num_hands=2, model_complexity=1)
-    face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refine_landmarks=True)
+    pose = mp_pose.Pose(static_image_mode=False, model_complexity=2, enable_segmentation=True)  # smooth_landmarks enable_segmentation smooth_segmentation for lower jitter
+    hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, model_complexity=1)
+    face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True)
 
     # Initialize list to store landmark data
     landmark_data = []
