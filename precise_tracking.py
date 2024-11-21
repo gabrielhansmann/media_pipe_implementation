@@ -53,12 +53,18 @@ for video_file in os.listdir(input_folder):
     # Start timer
     start_time = time.time()
 
+    # Add frame counter
+    frame_count = 0
+    
     # Process each frame of the input video
     while post_cap.isOpened():
         ret, frame = post_cap.read()
         if not ret:
             break
 
+        # Adding one frame per frame to frame_count
+        frame_count += 1
+        
         # Convert frame to RGB
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -98,11 +104,14 @@ for video_file in os.listdir(input_folder):
         out_video.write(frame)
         out_video_skeleton.write(skeleton_frame)
 
+        # Show progress
+        print(f"\rFrame {frame_count} / {total_frames}", end='')
+        
         # Show elapsed time every second
         elapsed_time = time.time() - start_time
         if int(elapsed_time) % 1 == 0:
             print(f"\rGenerating... Elapsed time: {int(elapsed_time)} seconds", end='')
-
+    
     # Calculate total elapsed time
     total_elapsed_time = time.time() - start_time
 
